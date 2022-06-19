@@ -1,6 +1,7 @@
 const { request } = require('express');
 const { Router } = require('express');
 const Marca = require('../modelos/Marca');
+const {validarMarca} = require('../helpers/validar-marca')
 
 
 const router = Router();
@@ -18,6 +19,11 @@ router.get('/', async function(req,res){
 router.post('/', async function(req,res){
     
     try{
+        const validaciones = validarMarca(req);
+
+        if (validaciones.length > 0){
+            return res.status(400).send(validaciones);
+        }
         console.log('Objeto recibido', req.body);
 
         const existeMarca = await Marca.findOne({nombre: req.body.nombre});
@@ -44,6 +50,11 @@ router.post('/', async function(req,res){
 
 router.put('/marcaId', async function(req,res){
     try {
+        const validaciones = validarMarca(req);
+
+        if (validaciones.length > 0){
+            return res.status(400).send(validaciones);
+        }
         console.log(req.body, req.params.marcaId);
        
         let marca = await Marca.findById(req.params.marcaId);
@@ -51,7 +62,7 @@ router.put('/marcaId', async function(req,res){
             return res.status(400).send('Marca no existe');
         }
         
-       const marcaExiste = await Marca.findOne({ marca: req.body.nombre, _id: { $ne: marca._id } });
+       const marcaExiste = await Marca.findOne({ marca: req.body.nombre});
        if (marcaExiste) {
            return res.status(400).send('Marca ya existe');
        }

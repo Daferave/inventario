@@ -2,6 +2,7 @@ const { request } = require('express');
 const { Router } = require('express');
 const Usuario = require('../modelos/Usuario');
 const router = Router();
+const {validarUsuario} = require('../helpers/validar-usuario')
 
 
 router.get('/', async function(req,res){
@@ -17,6 +18,11 @@ router.get('/', async function(req,res){
 router.post('/', async function(req,res){
     
     try{
+        const validaciones = validarUsuario(req);
+
+        if (validaciones.length > 0){
+            return res.status(400).send(validaciones);
+        }
         console.log('Objeto recibido', req.body);
 
         const existeUsuario = await Usuario.findOne({email: req.body.email});
@@ -44,20 +50,25 @@ router.post('/', async function(req,res){
 
 router.put('/usuarioId', async function(req,res){
     try {
-        console.log(req.body, req.params.usuarioId);
-       
-        let usuario = await Usuario.findById(req.params.usuarioid);
+        const validaciones = validarUsuario(req);
+
+        if (validaciones.length > 0){
+            return res.status(400).send(validaciones);
+        }
+        console.log(req.body, req.params.email);
+        let usuario = await Usuario.findOne(req.params.email);
+        
         if (!usuario) {
             return res.status(400).send('Usuario no existe');
         }
+        const usuarioExiste = await Usuario.findOne({ usuario: req.body.email, _id: { $ne: usuario._id } });
+        if (usuarioExiste) {
+            return res.status(400).send('Usuario ya existe');
+ 
+        }
         
-       const usuarioExiste = await Usuario.findOne({ usuario: req.body.email, _id: { $ne: usuario._id } });
-       if (usuarioExiste) {
-           return res.status(400).send('Usuario ya existe');
-       }
-
-        usuario.nombre = req.body.nombre;
         usuario.email = req.body.email;
+        usuario.nombre = req.body.nombre;
         usuario.estado = req.body.estado;
         usuario.fechaActualizacion = new Date();
        

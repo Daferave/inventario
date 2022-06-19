@@ -1,5 +1,6 @@
 const { Router } = require('express');
 const Inventario = require('../modelos/Inventario');
+const {validarInventario} = require('../helpers/validar-inventario');
 
 const router = Router();
 
@@ -19,6 +20,11 @@ router.get('/', async function(req, res) {
 
 router.post('/', async function(req, res) {
     try {
+        const validaciones = validarInventario(req);
+
+        if (validaciones.length > 0){
+            return res.status(400).send(validaciones);
+        }
         console.log(req.body);
         let existeInventario = await Inventario.findOne({ serial: req.body.serial });
     if (existeInventario) {
@@ -35,7 +41,7 @@ router.post('/', async function(req, res) {
         inventario.precio = req.body.precio;
         inventario.usuario = req.body.usuario._id;
         inventario.marca = req.body.marca._id;
-        inventario.tipoEquipo = req.body.tipoEquipo._id;
+        inventario.tipoEquipo = req.body.estadoEquipo._id;
         inventario.estadoEquipo = req.body.estadoEquipo._id;
         inventario.fechaCreacion = new Date();
         inventario.fechaActualizacion = new Date();
@@ -51,6 +57,11 @@ router.post('/', async function(req, res) {
 
 router.put('/:inventarioId', async function(req, res) {
     try {
+        const validaciones = validarInventario(req);
+
+        if (validaciones.length > 0){
+            return res.status(400).send(validaciones);
+        }
         console.log(req.body, req.params.inventarioId);
        
         let inventario = await Inventario.findById(req.params.inventarioId);

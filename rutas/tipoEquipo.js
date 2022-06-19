@@ -1,6 +1,8 @@
 const express = require('express');
 const { Router } = require('express');
 const TipoEquipo = require('../modelos/TipoEquipo');
+const {validarTipoEquipo} = require('../helpers/validar-tipoEquipo')
+
 
 
 const router = Router();
@@ -18,6 +20,11 @@ router.get('/', async function(req,res){
 router.post('/', async function(req,res){
     
     try{
+        const validaciones = validarTipoEquipo(req);
+
+        if (validaciones.length > 0){
+            return res.status(400).send(validaciones);
+        }
         console.log('Objeto recibido', req.body);
 
         let tipoEquipo = new TipoEquipo();
@@ -37,8 +44,13 @@ router.post('/', async function(req,res){
 }); 
     
 
-router.put('/tipoEquipoId', async function(req,res){
+router.put('/', async function(req,res){
     try {
+        const validaciones = validarTipoEquipo(req);
+
+        if (validaciones.length > 0){
+            return res.status(400).send(validaciones);
+        }
         console.log(req.body, req.params.tipoEquipoId);
        
         let tipoEquipo = await TipoEquipo.findById(req.params.tipoEquipoId);

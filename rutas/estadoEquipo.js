@@ -1,7 +1,7 @@
 const express = require('express');
 const { Router } = require('express');
 const EstadoEquipo = require('../modelos/EstadoEquipo');
-
+const {validarEstadoEquipo} = require('../helpers/validar-estadoEquipo');
 const router = Router();
 
 router.get('/', async function(req,res){
@@ -17,6 +17,11 @@ router.get('/', async function(req,res){
 router.post('/', async function(req,res){
     
     try{
+        const validaciones = validarEstadoEquipo(req);
+
+        if (validaciones.length > 0){
+            return res.status(400).send(validaciones);
+        }
         console.log('Objeto recibido', req.body);
 
         let estadoEquipo = new EstadoEquipo();
@@ -31,13 +36,18 @@ router.post('/', async function(req,res){
    
     } catch(error){
         console.log(error);
-        res.send('Ocurrio un error');
+        res.status(500).send('Ocurrio un error en servidor');
     }
 }); 
     
 
-router.put('/tipoEquipoId', async function(req,res){
+router.put('/', async function(req,res){
     try {
+        const validaciones = validarEstadoEquipo(req);
+
+        if (validaciones.length > 0){
+            return res.status(400).send(validaciones);
+        }
         console.log(req.body, req.params.tipoEquipoId);
        
         let tipoEquipo = await TipoEquipo.findById(req.params.tipoEquipoId);
